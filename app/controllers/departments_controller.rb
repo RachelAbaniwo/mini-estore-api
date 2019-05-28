@@ -1,5 +1,5 @@
 class DepartmentsController < ApplicationController
-  before_action :set_department, only: [:show, :update, :destroy]
+  before_action :set_department, only: [:show]
 
   # GET /departments
   def index
@@ -8,7 +8,7 @@ class DepartmentsController < ApplicationController
     render json: @departments
   end
 
-  # GET /departments/1
+  # GET /departments/{department_id}
   def show
     render json: @department
   end
@@ -16,6 +16,6 @@ class DepartmentsController < ApplicationController
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_department
-      @department = Department.find(params[:id])
+      @department = Department.find(params[:department_id])
     end
 end
