@@ -1,5 +1,6 @@
 Rails.application.routes.draw do
   resources :products, only: [:index]
+  get '/products/search', to: 'products#search_products', as: 'search_products'
   get '/products/:product_id', to: 'products#show', as: 'get_product'
   get '/products/inCategory/:category_id', to: 'products#get_products_in_category', as: 'products_in_category'
   get '/products/inDepartment/:department_id', to: 'products#get_products_in_department', as: 'products_in_department'

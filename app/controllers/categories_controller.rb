@@ -3,9 +3,32 @@ class CategoriesController < ApplicationController
 
   # GET /categories
   def index
-    @categories = Category.all
+    order = params[:order] ? params[:order] : 'category_id,ASC'
+    order_arr = order.split(",")
+    if (order.include? ",") && ! (order.include? " ") && (order_arr.length == 2) && (order_arr[1] == order_arr[1].upcase)
+      column = ["category_id", "name"]
+      order_by = ["ASC","DESC"]
+      if (column.any?{|substr| order_arr[0].include?(substr)}) && (order_by.any?{|substr| order_arr[1].include?(substr)})
+        order_string = order
+        order_string.tr!(',', ' ') 
+        limit = params[:limit] ? params[:limit] : 20
+        page = params[:page] ? params[:page] : 1
+        offset = (page.to_i - 1) * limit.to_i
+        all_categories = Category.all
+        @categories = Category.all.order(order_string).offset(offset).limit(limit)
+        categories = {
+          count: all_categories.length,
+          rows: @categories
+        }
 
-    render json: @categories
+        render json: categories
+      else
+        return puts"error3"
+      end
+    else
+      return puts"error2"
+    end
+
   end
 
   # GET /categories/{category_id}

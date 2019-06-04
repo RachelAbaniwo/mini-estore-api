@@ -3,8 +3,42 @@ class ProductsController < ApplicationController
 
   # GET /products
   def index
-    @products = Product.all
+    limit = params[:limit] ? params[:limit] : 20
+    page = params[:page] ? params[:page] : 1
+    offset = (page.to_i - 1) * limit.to_i
+    all_products = Product.all
+    @products = Product.all.offset(offset).limit(limit)
+   
+    products = {
+      count: all_products.length,
+      rows: @products
+    }
+    render json: products
+  end
 
+  # GET /products/search
+  def search_products
+    search_string = params[:query_string] if params[:query_string]
+    all_words = params[:all_words] ? params[:all_words] : true
+    description_length = params[:description_length] ? params[:description_length] : 200
+    limit = params[:limit] ? params[:limit] : 20
+    page = params[:page] ? params[:page] : 1
+    offset = (page.to_i - 1) * limit.to_i
+
+    query = "SELECT   product_id, name,
+          IF(LENGTH(description) <= #{description_length},
+          description,
+           CONCAT(LEFT(description, #{description_length}),
+                   '...')) AS description,
+           price, discounted_price, thumbnail
+           FROM     product
+           WHERE    name LIKE '%#{search_string}%' OR description LIKE '%#{search_string}%'
+           LIMIT    #{offset}, #{limit}"
+
+    @products = ActiveRecord::Base.connection.exec_query(query)
+    ActiveRecord::Base.clear_active_connections!
+
+    
     render json: @products
   end
 
