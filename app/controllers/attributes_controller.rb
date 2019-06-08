@@ -3,14 +3,18 @@ class AttributesController < ApplicationController
 
   # GET /attributes
   def index
-    @attributes = Attribute.all
+    begin
+      @attributes = Attribute.all
+    rescue
+      raise Error::CustomError.error(500, :ISE, "attribute")
+    end
 
-    render json: @attributes
+    render json: @attributes, status: 200
   end
 
   # GET /attributes/{attribute_id}
   def show
-    render json: @attribute
+      render json: @attribute, status: 200
   end
 
   # GET /attributes/values/{attribute_id}
@@ -24,12 +28,19 @@ class AttributesController < ApplicationController
       }
       values << value
     end
-    render json: values
+    render json: values, status: 200
   end
 
   # GET /attributes​/inProduct​/{:product_id}
   def get_product_attributes
-    @attribute_values = Product.find(params[:product_id]).attribute_values
+    raise Error::CustomError.error(422, :PRO_01, "product") unless Number.is_integer?(params[:product_id])
+    begin 
+      @attribute_values = Product.find(params[:product_id]).attribute_values
+    rescue ActiveRecord::RecordNotFound
+      raise Error::CustomError.error(404, :PRO_02, "product")
+    rescue
+      raise Error::CustomError.error(500, :ISE, "attribute")
+    end
     product_attributes = []
     @attribute_values.map do |attribute_value|
       product_attribute = {
@@ -39,12 +50,19 @@ class AttributesController < ApplicationController
       }
       product_attributes << product_attribute
     end
-     render json: product_attributes
+     render json: product_attributes, status: 200
   end
 
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_attribute
-      @attribute = Attribute.find(params[:attribute_id])
+      raise Error::CustomError.error(422, :ATT_01, "attribute") unless Number.is_integer?(params[:attribute_id])
+      begin
+        @attribute = Attribute.find(params[:attribute_id]) 
+      rescue ActiveRecord::RecordNotFound
+        raise Error::CustomError.error(404, :ATT_02, "attribute")
+      rescue
+        raise Error::CustomError.error(500, :ISE, "attribute")
+      end
     end
 end

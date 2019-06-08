@@ -5,41 +5,64 @@ class CategoriesController < ApplicationController
   def index
     order = params[:order] ? params[:order] : 'category_id,ASC'
     order_arr = order.split(",")
-    if (order.include? ",") && ! (order.include? " ") && (order_arr.length == 2) && (order_arr[1] == order_arr[1].upcase)
-      column = ["category_id", "name"]
-      order_by = ["ASC","DESC"]
-      if (column.any?{|substr| order_arr[0].include?(substr)}) && (order_by.any?{|substr| order_arr[1].include?(substr)})
+    column = ["category_id", "name"]
+    order_by = ["ASC","DESC"]
+    if (order.include? ",") && ! (order.include? " ") && 
+      (order_arr.length == 2) && (order_arr[1] == order_arr[1].upcase) && 
+      (order_by.any?{|substr| order_arr[1].include?(substr)})
+      
+      if (column.any?{|substr| order_arr[0].include?(substr)}) 
         order_string = order
         order_string.tr!(',', ' ') 
-        limit = params[:limit] ? params[:limit] : 20
-        page = params[:page] ? params[:page] : 1
+        limit = Number.is_integer?(params[:limit]) ? params[:limit] : 20
+        page = Number.is_integer?(params[:page]) ? params[:page] : 1
         offset = (page.to_i - 1) * limit.to_i
-        all_categories = Category.all
-        @categories = Category.all.order(order_string).offset(offset).limit(limit)
+
+        begin
+          @categories = Category.all.order(order_string).offset(offset).limit(limit)
+        rescue
+          raise Error::CustomError.error(500, :ISE, "category")
+        end
+
         categories = {
-          count: all_categories.length,
+          count: @categories.except(:offset, :limit, :order).count,
           rows: @categories
         }
 
-        render json: categories
+        render json: categories, status: 200
       else
-        return puts"error3"
+        raise Error::CustomError.error(422, :PAG_02, "category")
       end
     else
-      return puts"error2"
+      raise Error::CustomError.error(422, :PAG_01, "category")
     end
 
   end
 
   # GET /categories/{category_id}
   def show
-    render json: @category
+    render json: @category, status: 200
   end
 
   # GET /categories/inProduct/{product_id}
   def get_product_category
-    @product = Product.find(params[:product_id])
-    @category = ProductCategory.where(product_id: @product.id).first.category 
+    raise Error::CustomError.error(422, :PRO_01, "product") unless Number.is_integer?(params[:product_id])
+
+    begin
+      @product = Product.find(params[:product_id])
+    rescue ActiveRecord::RecordNotFound
+      raise Error::CustomError.error(404, :PRO_02, "product")
+    rescue
+      raise Error::CustomError.error(500, :ISE, "product")
+    end
+
+    begin
+      @category = ProductCategory.where(product_id: @product.id).first.category
+    rescue ActiveRecord::RecordNotFound
+      raise Error::CustomError.error(404, :PRO_03, "category")
+    rescue
+      raise Error::CustomError.error(500, :ISE, "category")
+    end
 
     category = [{
       category_id: @category.id,
@@ -47,20 +70,37 @@ class CategoriesController < ApplicationController
       name: @category.name
     }]
 
-    render json: category
+    render json: category, status: 200
   end
+
   # GET /category/inDepartment/{department_id}
   def get_department_categories
-    @department = Department.find(params[:department_id])
+    raise Error::CustomError.error(422, :DEP_01, "department") unless Number.is_integer?(params[:department_id])
+
+    begin
+      @department = Department.find(params[:department_id])
+    rescue ActiveRecord::RecordNotFound
+      raise Error::CustomError.error(404, :DEP_02, "department")
+    rescue
+      raise Error::CustomError.error(500, :ISE, "department")
+    end
+    
     @categories = @department.categories.all
 
-    render json: @categories
+    render json: @categories, status: 200
   end
  
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_category
-      @category = Category.find(params[:id])
+      raise Error::CustomError.error(422, :CAT_02, "category") unless Number.is_integer?(params[:category_id])
+      begin
+        @category = Category.find(params[:category_id])
+      rescue ActiveRecord::RecordNotFound
+        raise Error::CustomError.error(404, :CAT_01, "category")
+      rescue
+        raise Error::CustomError.error(500, :ISE, "category")
+      end
     end
 
 end

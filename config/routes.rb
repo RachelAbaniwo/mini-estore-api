@@ -13,7 +13,7 @@ Rails.application.routes.draw do
   get '/attributes​/inProduct​/:product_id', to: 'attributes#get_product_attributes', as: 'product_attributes'
 
   resources :categories, only: [:index]
-  get '/categories/:product_id', to: 'categories#show', as: 'get_category'
+  get '/categories/:category_id', to: 'categories#show', as: 'get_category'
   get '/categories/inProduct/:product_id', to: 'categories#get_product_category', as: 'product_category'
   get '/categories/inDepartment/:department_id', to: 'categories#get_department_categories', as: 'department_categories'
 
