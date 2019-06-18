@@ -14,18 +14,18 @@ module Error::Helpers
         "USR_06": "This is an invalid phone number.",
         "USR_07": "This is too long <FIELD NAME>",
         "USR_08": "This is an invalid Credit Card.",
-        "USR_09": "The Shipping Region ID is not number",
-        "CAT_01": "Don't exist category with this ID",
+        "USR_09": "The Shipping Region ID is not number.",
+        "CAT_01": "Don't exist category with this ID.",
         "CAT_02": "The ID is not a number.",
         "DEP_01": "The ID is not a number.",
-        "DEP_02": "Don'exist department with this ID.",
+        "DEP_02": "Don't exist department with this ID.",
         "PRO_01": "The ID is not a number.",
-        "PRO_02": "Don'exist product with this ID.",
+        "PRO_02": "Don't exist product with this ID.",
         "PRO_03": "Product has no category.",
         "ATT_01": "The ID is not a number.",
-        "ATT_02": "Don'exist attribute with this ID.",
-        "ISE": "Internal server error",
-        "UNPROCESSABLE": "Unprocessable entity"
+        "ATT_02": "Don't exist attribute with this ID.",
+        "ISE": "Internal server error.",
+        "UNPROCESSABLE": "Unprocessable entity."
       }
 
       error = {

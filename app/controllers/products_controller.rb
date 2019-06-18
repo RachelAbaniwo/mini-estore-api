@@ -5,16 +5,22 @@ class ProductsController < ApplicationController
   def index
     limit = Number.is_integer?(params[:limit]) ? params[:limit] : 20
     page = Number.is_integer?(params[:page]) ? params[:page] : 1
+    description_length = Number.is_integer?(params[:description_length]) ? params[:description_length] : 200
     offset = (page.to_i - 1) * limit.to_i
 
-    begin
-      @products = Product.all.offset(offset).limit(limit)
-    rescue
-      raise Error::CustomError.error(500, :ISE, "product")
-    end
-
+    
+    @products = Product.select(:product_id, 
+                              :name,
+                              "IF(LENGTH(description) <= #{description_length}, description, CONCAT(left(description, #{description_length}), '...' )) AS description",
+                              :price,
+                              :discounted_price,
+                              :image,
+                              :image_2,
+                              :thumbnail,
+                              :display
+                              ).all.offset(offset).limit(limit)
     products = {
-      count: @products.except(:offset, :limit).count,
+      count: @products.except(:offset, :limit).size,
       rows: @products
     }
     
@@ -24,11 +30,14 @@ class ProductsController < ApplicationController
   # GET /products/search
   def search_products
     search_string = params[:query_string] if params[:query_string]
-    if search_string.include?('"')
-      search_params = search_string.tr('"',"'")
-    else
-      search_params = search_string
+    if search_string
+      if search_string.include?('"')
+        search_params = search_string.tr('"',"'")
+      else
+        search_params = search_string
+      end
     end
+
     all_words = params[:all_words] ? params[:all_words] : "on"
     
     description_length = Number.is_integer?(params[:description_length]) ? params[:description_length] : 200
@@ -37,26 +46,26 @@ class ProductsController < ApplicationController
     offset = (page.to_i - 1) * limit.to_i
 
     
-    if all_words = "on"
-      query = %Q(SELECT SQL_CALC_FOUND_ROWS product_id, name,
-            IF(LENGTH(description) <= #{description_length},
-            description,
-            CONCAT(LEFT(description, #{description_length}),
-                    '...')) AS description,
-            price, discounted_price, thumbnail
-            FROM     product
-            WHERE    MATCH(name, description) AGAINST("%#{search_params}%" IN BOOLEAN MODE)
-            ORDER BY MATCH(name, description) AGAINST("%#{search_params}%" IN BOOLEAN MODE) DESC
-            LIMIT    #{offset}, #{limit})
-    else
+    if all_words = "off"
       query = %Q(SELECT product_id, name,
             IF(LENGTH(description) <= #{description_length},
             description,
             CONCAT(LEFT(description, #{description_length}),
-                    '...')) AS description,
+            '...')) AS description,
             price, discounted_price, thumbnail
             FROM     product
-            WHERE    MATCH(name, description) AGAINST('%#{search_params}%')
+            WHERE    MATCH(name, description) AGAINST("%#{search_params}%")
+            LIMIT    #{offset}, #{limit})
+    else
+      query = %Q(SELECT SQL_CALC_FOUND_ROWS product_id, name,
+            IF(LENGTH(description) <= #{description_length},
+            description,
+            CONCAT(LEFT(description, #{description_length}),
+            '...')) AS description,
+            price, discounted_price, thumbnail
+            FROM     product
+            WHERE    MATCH(name, description) AGAINST("%#{search_params}%" IN BOOLEAN MODE)
+            ORDER BY MATCH(name, description) AGAINST("%#{search_params}%" IN BOOLEAN MODE) DESC
             LIMIT    #{offset}, #{limit})
     end
 
@@ -135,7 +144,7 @@ class ProductsController < ApplicationController
     begin
       @category = ProductCategory.where(product_id: @product.id).first.category
     rescue ActiveRecord::RecordNotFound
-      raise Error::CustomError.error(404, :PRO_03, "category")
+      raise Error::CustomError.error(404, :PRO_03, "product")
     rescue
       raise Error::CustomError.error(500, :ISE, "category")
     end
@@ -156,7 +165,7 @@ class ProductsController < ApplicationController
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_product
-      raise Error::CustomError.error(422, :DEP_01, "department") unless Number.is_integer?(params[:product_id])
+      raise Error::CustomError.error(422, :PRO_01, "product") unless Number.is_integer?(params[:product_id])
 
       begin
         @product = Product.find(params[:product_id])
