@@ -10,7 +10,7 @@ Rails.application.routes.draw do
   resources :attributes, only: [:index]
   get '/attributes/:attribute_id', to: 'attributes#show', as: 'get_attribute'
   get '/attributes/values/:attribute_id', to: 'attributes#get_attribute_values', as: 'attribute_values'
-  get '/attributes​/inProduct​/:product_id', to: 'attributes#get_product_attributes', as: 'product_attributes'
+  get '/attributes/inProduct/:product_id', to: 'attributes#get_product_attributes', as: 'product_attributes'
 
   resources :categories, only: [:index]
   get '/categories/:category_id', to: 'categories#show', as: 'get_category'
