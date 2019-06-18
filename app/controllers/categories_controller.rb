@@ -59,7 +59,7 @@ class CategoriesController < ApplicationController
     begin
       @category = ProductCategory.where(product_id: @product.id).first.category
     rescue ActiveRecord::RecordNotFound
-      raise Error::CustomError.error(404, :PRO_03, "category")
+      raise Error::CustomError.error(404, :PRO_03, "product")
     rescue
       raise Error::CustomError.error(500, :ISE, "category")
     end
