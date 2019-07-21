@@ -1,5 +1,6 @@
 class ProductsController < ApplicationController
-  before_action :set_product, only: [:show, :get_product_details, :get_product_locations]
+  before_action :set_customer, only: [:add_review]
+  before_action :set_product, only: [:show, :get_product_details, :get_product_locations, :add_review, :get_reviews]
 
   # GET /products
   def index
@@ -159,11 +160,52 @@ class ProductsController < ApplicationController
     render json: product_locations, status: 200
   end
 
+  # POST /products/{product_id}/reviews
+  def add_review
+    params[:customer_id] = @customer.id
+    review_params = params.permit(:review, :customer_id, :product_id, :review, :rating)
 
+    if params[:rating] && params[:rating] != ""
+      raise Error::CustomError.error(422, :RAT_01, "rating") unless Number.is_integer?(params[:rating])
+    end
+    @review = Review.new(review_params)
+    if @review.save
+      render json: { message: "review added" }, status: :created
+    else 
+      if @review.errors
+        errors = @review.errors
+        check_review_params(errors)
+      else
+        raise Error::CustomError.error(500, :ISE, "review")
+      end
+    end
+  end
 
+  # POST /products/{product_id}/reviews
+  def get_reviews
+    @reviews = Review.where(product_id: @product.id)
+    reviews = []
+    @reviews.map do |review|
+      customer_name = review.customer.name
+      review = {
+        name: customer_name,
+        review: review.review,
+        rating: review.rating,
+        created_on: review.created_on
+      }
+      reviews << review
+    end
+
+    render json: reviews, status: 200
+  end
 
   private
     # Use callbacks to share common setup or constraints between actions.
+    def set_customer
+      header = get_header()
+      @customer = Authorize.authorize_request(header)
+    end
+  
     def set_product
       raise Error::CustomError.error(422, :PRO_01, "product") unless Number.is_integer?(params[:product_id])
 
