@@ -40,7 +40,7 @@ ActiveRecord::Schema.define(version: 0) do
   create_table "customer", primary_key: "customer_id", id: :integer, options: "ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci", force: :cascade do |t|
     t.string "name", limit: 50, null: false
     t.string "email", limit: 100, null: false
-    t.string "password", limit: 50, null: false
+    t.string "password", limit: 70, null: false
     t.text "credit_card"
     t.string "address_1", limit: 100
     t.string "address_2", limit: 100
@@ -64,7 +64,7 @@ ActiveRecord::Schema.define(version: 0) do
   create_table "order_detail", primary_key: "item_id", id: :integer, options: "ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci", force: :cascade do |t|
     t.integer "order_id", null: false
     t.integer "product_id", null: false
-    t.string "attributes", limit: 1000, null: false
+    t.string "attry", limit: 1000, null: false
     t.string "product_name", limit: 100, null: false
     t.integer "quantity", null: false
     t.decimal "unit_cost", precision: 10, scale: 2, null: false
@@ -133,7 +133,7 @@ ActiveRecord::Schema.define(version: 0) do
   create_table "shopping_cart", primary_key: "item_id", id: :integer, options: "ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci", force: :cascade do |t|
     t.string "cart_id", limit: 32, null: false
     t.integer "product_id", null: false
-    t.string "attributes", limit: 1000, null: false
+    t.string "attry", limit: 1000, null: false
     t.integer "quantity", null: false
     t.boolean "buy_now", default: true, null: false
     t.datetime "added_on", null: false

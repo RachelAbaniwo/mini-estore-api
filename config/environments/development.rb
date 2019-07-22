@@ -9,6 +9,10 @@ Rails.application.configure do
   # Do not eager load code on boot.
   config.eager_load = true
 
+  # Stripe credentials
+  Rails.configuration.stripe.secret_key = ENV['STRIPE_SECRET_KEY'] ||= Rails.application.credentials.stripe[:development][:secret_key]
+  Rails.configuration.stripe.publishable_key = ENV['STRIPE_PUBLISHABLE_KEY'] ||= Rails.application.credentials.stripe[:development][:publishable_key]
+
   # Show full error reports.
   config.consider_all_requests_local = true
 
